@@ -1,2 +1,0 @@
-model_checkpoint_path: "qa_best.ckpt-6500"
-all_model_checkpoint_paths: "qa_best.ckpt-6500"

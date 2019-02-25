@@ -233,7 +233,7 @@ def main(unused_argv):
 	global_context = 'INSOFE has awarded over Rs. 3.2 Crores in merit scholarships in the last 2 years alone. INSOFE recognizes top performers and rewards them for demonstrating outstanding achievement at every phase of the program based on their performance and eligibility criteria. At each phase of the program, top performers are awarded rankings based on which scholarship winners are announced. Top performers can potentially win scholarships ranging from Rs. 25,000 to entire program fee and this can be attained on the successful completion of the program.'
 	# Load model from ckpt_load_dir
 	initialize_model(sess, qa_model, FLAGS.ckpt_load_dir, expect_exists=True)
-	app.run(host='0.0.0.0')
+	app.run(host='0.0.0.0', port=80)
 
 
 fpath = '/home/sagarp/gem/cs224n-Squad-Project/data/tiny-dev-test.json'

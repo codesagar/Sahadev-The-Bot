@@ -27,6 +27,22 @@ import numpy as np
 import flask
 import pickle
 from flask_cors import CORS
+import logging
+
+from random import randint
+
+from flask import Flask, render_template
+
+from flask import request, session
+
+from flask_ask import (
+	Ask,
+	statement,
+	question,
+	request as ask_request,
+	session as ask_session,
+	version
+)
 
 import tensorflow as tf
 
@@ -107,30 +123,38 @@ import json
 import numpy as np
 
 def generate_answers():
-    dummy_answers_list = []
-    for i in range(np.random.randint(2,4)):
-        dummy_answers_list.append({'answer_start':np.random.randint(0,100), 'text':'Just random stuff to stump you'})
-    return dummy_answers_list
+	dummy_answers_list = []
+	for i in range(np.random.randint(2,4)):
+		dummy_answers_list.append({'answer_start':np.random.randint(0,100), 'text':'Just random stuff to stump you'})
+	return dummy_answers_list
 
 
 def generate_qas(questions_list):
-    qas_list = []
-    for ques in questions_list:
-        rand_id = ''.join(random.choice('0123456789abcde') for i in range(24))
-        qas_list.append({'answers':generate_answers(), 'id':rand_id, 'question':ques})
-    return qas_list
+	qas_list = []
+	for ques in questions_list:
+		rand_id = ''.join(random.choice('0123456789abcde') for i in range(24))
+		qas_list.append({'answers':generate_answers(), 'id':rand_id, 'question':ques})
+	return qas_list
 
 
 def generate_context(context, questions_list):
-	return [{'context':context, 'qas':generate_qas(questions_list)}]
+	return {'context':context, 'qas':generate_qas(questions_list)}
+
+def generate_multiple_context(context, questions_list):
+	return [generate_context(ctx,questions_list) for ctx in context]
 
 
 def generate_paragraphs(title, context, questions_list):
-	return [{'title':title, 'paragraphs':generate_context(context,questions_list)}]
+	return [{'title':title, 'paragraphs':[generate_context(context,questions_list)]}]
 
+def generate_multiple_paragraphs(title, context, questions_list):
+	return [{'title':title, 'paragraphs':generate_multiple_context(context,questions_list)}]
 
 def generate_json(version, title, context, questions_list):
 	return {'version':version, 'data':generate_paragraphs(title, context, questions_list)}
+
+def generate_multiple_json(version, title, context, questions_list):
+	return {'version':version, 'data':generate_multiple_paragraphs(title, context, questions_list)}
 
 
 # def context_parser(text):
@@ -140,28 +164,30 @@ def generate_json(version, title, context, questions_list):
 #     return(context, [question])
 
 def context_parser(text_in):
-    c_status = True if re.search('context', text_in, re.IGNORECASE) else False
-    q_certain =  True if re.search('question', text_in, re.IGNORECASE) else False
-    q_probable = True if re.search('\?|What|Who|How|When|Which', text_in, re.IGNORECASE) else False
-    get_context = True if re.search('(get|current) context', text_in, re.IGNORECASE) else False
-    print('c_status',c_status)
-    if get_context:
-    	text_type = 'GC'
-    	text_out = text_in
-    elif len(text_in)<20:
-    	text_type = 'O'
-    	text_out = "I'd love to have a humane conversation, but right now I'm just designed to take a context and answer questions based on that. Maybe next time..."
-    elif c_status or len(text_in) > 100:
-        text_type = 'C'
-        text_out = text_in
-    elif q_certain:
-        text_type = 'Q'
-        pattern = re.compile("question", re.IGNORECASE)
-        text_out = pattern.sub("",text_in).strip()
-    elif q_probable and len(text_in) < 100:
-        text_type = 'Q'
-        text_out = text_in
-    return(text_type, [text_out])
+	c_status = True if re.search('context', text_in, re.IGNORECASE) else False
+	q_certain =  True if re.search('question', text_in, re.IGNORECASE) else False
+	q_probable = True if re.search('\?|What|Who|How|When|Which|Where', text_in, re.IGNORECASE) else False
+	get_context = True if re.search('(get|current) context', text_in, re.IGNORECASE) else False
+	insofe_filter = re.compile(re.escape('in Sophie'), re.IGNORECASE)
+	text_in = insofe_filter.sub('INSOFE', text_in)
+	print('c_status',c_status)
+	if get_context:
+		text_type = 'GC'
+		text_out = text_in
+	elif len(text_in)<20:
+		text_type = 'O'
+		text_out = "I'd love to have a humane conversation, but right now I'm just designed to take a context and answer questions based on that. Maybe next time..."
+	elif c_status or len(text_in) > 100:
+		text_type = 'C'
+		text_out = text_in
+	elif q_certain:
+		text_type = 'Q'
+		pattern = re.compile("question", re.IGNORECASE)
+		text_out = pattern.sub("",text_in).strip()
+	elif q_probable and len(text_in) < 100:
+		text_type = 'Q'
+		text_out = text_in
+	return(text_type, [text_out])
 
 def initialize_model(session, model, train_dir, expect_exists):
 	"""
@@ -230,16 +256,23 @@ def main(unused_argv):
 	sess =  tf.Session(config=config)
 
 	global global_context
-	global_context = 'INSOFE has awarded over Rs. 3.2 Crores in merit scholarships in the last 2 years alone. INSOFE recognizes top performers and rewards them for demonstrating outstanding achievement at every phase of the program based on their performance and eligibility criteria. At each phase of the program, top performers are awarded rankings based on which scholarship winners are announced. Top performers can potentially win scholarships ranging from Rs. 25,000 to entire program fee and this can be attained on the successful completion of the program.'
+	global_context = 'INSOFE has awarded over Rs 3.2 Crores in merit scholarships in the last 2 years alone. INSOFE recognizes top performers and rewards them for demonstrating outstanding achievement at every phase of the program based on their performance and eligibility criteria. At each phase of the program, top performers are awarded rankings based on which scholarship winners are announced. Top performers can potentially win scholarships ranging from Rs 25,000 to entire program fee and this can be attained on the successful completion of the program.'
+	global global_context_list
+	global_context_list = ['INSOFE has awarded over Rs 3.2 Crores in merit scholarships in the last 2 years alone. INSOFE recognizes top performers and rewards them for demonstrating outstanding achievement at every phase of the program based on their performance and eligibility criteria. At each phase of the program, top performers are awarded rankings based on which scholarship winners are announced. Top performers can potentially win scholarships ranging from Rs 25,000 to entire program fee and this can be attained on the successful completion of the program.',
+	'INSOFE is working on developing a video surveillance tool with enhanced smart capabilities. The tool identifies the violation and sends out instant automated response without requiring any manual interference. Since the current process involves manually going through the footage and checking for violations, it is not only a time-consuming process but also requires manual hours and effort. The tool makes the entire process automated with an Embedded Machine Learning chip Question',
+	'Dr Dakshinamurthy, is the Founder and President of INSOFE. He did his PhD in Materials Science and Engineering from Carnegie Mellon University. He is known for simplifying complex ideas and communicating them clearly and excitingly. Dr Sridhar Pappu is the Executive VP - Academics of INSOFE. He leads the academic administration of the institute and ensures the highest standards in learning for the students. He teaches statistics. He loves data, soo much that he wears two fitness trackers.']
+	
 	# Load model from ckpt_load_dir
 	initialize_model(sess, qa_model, FLAGS.ckpt_load_dir, expect_exists=True)
-	app.run(host='0.0.0.0', port=80)
+	# app.run(host='0.0.0.0', port=443, ssl_context=('/home/gem/.ssh/certificate.pem', '/home/gem/.ssh/private-key.pem'))
+	app.run(host='0.0.0.0', port=443, ssl_context=('/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/fullchain.pem', '/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/privkey.pem'))
 
 
-fpath = '/home/sagarp/gem/cs224n-Squad-Project/data/tiny-dev-test.json'
+# fpath = '/home/sagarp/gem/cs224n-Squad-Project/data/tiny-dev-test.json'
 # initialize our Flask application and the Keras model
 app = flask.Flask(__name__)
 CORS(app)
+ask = Ask(app, "/")
 
 @app.route("/predict", methods=["GET", "POST"])
 def predict():
@@ -272,8 +305,8 @@ def predict():
 				print(new_text)
 				new_json = generate_json(version=1, title="INSOFE", context=global_context, questions_list=new_text)
 
-				with open(fpath, 'w') as outfile:
-				    json.dump(new_json, outfile)
+				# with open(fpath, 'w') as outfile:
+				#     json.dump(new_json, outfile)
 
 				# Read the JSON data from file
 				# qn_uuid_data, context_token_data, qn_token_data = get_json_data(fpath)
@@ -304,14 +337,76 @@ def predict():
 	# return the data dictionary as a JSON response
 	return flask.jsonify(data)
 
-@app.route('/', methods=['GET'])
+
+@app.route('/hello', methods=['GET'])
 def upload_file():
-    return '''
-    <!doctype html>
-    <title>HomePage</title>
-    <h1>Hello from The Dude</h1>
-    </form>
-    '''
+	return '''
+	<!doctype html>
+	<title>HomePage</title>
+	<h1>Hello from The Dude</h1>
+	</form>
+	'''
+
+
+@ask.launch
+def welcome():
+	print('welcome')
+	welcome_msg = render_template('welcome')
+	return question(welcome_msg)
+
+
+@ask.intent("answer")
+def answer():
+	print('Answering mode')
+	alexa_question = ask_request.intent.slots.question.value
+	print(alexa_question)
+	text_type, new_text = context_parser(alexa_question)
+	print('Text type',text_type)
+	print('Global context',global_context)
+	print('New text',new_text)
+	new_json = generate_multiple_json(version=1, title="INSOFE", context=global_context_list, questions_list=new_text)
+	print(new_json)
+	if text_type=='Q':
+		qn_uuid_data, context_token_data, qn_token_data = get_json_data(new_json)
+		answers_dict = generate_answers_prob(sess, qa_model, word2id, qn_uuid_data, context_token_data, qn_token_data)
+		answers_dict = sorted(answers_dict.items(), key=lambda e: e[1][1], reverse=True)
+		print(answers_dict, 'ad')
+		# answer = answers_dict.values()[0][0].replace('insofe','insofee')
+		answer = answers_dict[0][1][0].replace('insofe','insofee')
+	else:
+		answer = "I'm not sure if I understand. Come again"
+	return question(answer)
+
+
+@ask.intent('AMAZON.StopIntent')
+def stop():
+	bye_text = render_template('bye')
+	return statement(bye_text)
+
+
+@ask.session_ended
+def session_ended():
+	end_text = render_template('sorry')
+	return question(end_text)
+
+
+@ask.intent('josh')
+def josh():
+	josh_text = render_template('josh')
+	return question(josh_text)
+
+
+@ask.intent('gem')
+def gem():
+	gem_text = render_template('gem')
+	return question(gem_text)
+
+
+@ask.intent('AMAZON.FallbackIntent')
+def fallback():
+	fallback_text = render_template('sorry')
+	return question(fallback_text)
+
 
 if __name__ == "__main__":
 	tf.app.run()

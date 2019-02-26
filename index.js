@@ -132,7 +132,8 @@ $('document').ready(function(){
 
 	$.ajax({
 		type: "POST",
-		url: "http://172.16.0.206:5000/predict",
+		url: "https://gem.eastus2.cloudapp.azure.com/predict",
+		// url: "http://172.16.0.206:5000/predict",
 		// contentType: "application/json; charset=utf-8",
 		dataType: "json",
 		crossDomain: true,
@@ -179,7 +180,8 @@ function send(text) {
 	$.ajax({
 		type: "POST",
 		// Change your API url here 
-		url: "http://172.16.0.206:5000/predict",
+		url: "https://gem.eastus2.cloudapp.azure.com/predict",
+		// url: "http://172.16.0.206:5000/predict",
 		// contentType: "application/json; charset=utf-8",
 		dataType: "json",
 		crossDomain: true,

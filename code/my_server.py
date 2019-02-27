@@ -174,7 +174,7 @@ def context_parser(text_in):
 	if get_context:
 		text_type = 'GC'
 		text_out = text_in
-	elif len(text_in)<20:
+	elif len(text_in)<10:
 		text_type = 'O'
 		text_out = "I'd love to have a humane conversation, but right now I'm just designed to take a context and answer questions based on that. Maybe next time..."
 	elif c_status or len(text_in) > 100:
@@ -217,6 +217,8 @@ def initialize_model(session, model, train_dir, expect_exists):
 
 def main(unused_argv):
 	# Print an error message if you've entered flags incorrectly
+
+
 	if len(unused_argv) != 1:
 		raise Exception("There is a problem with how you entered flags: %s" % unused_argv)
 
@@ -264,13 +266,15 @@ def main(unused_argv):
 	
 	# Load model from ckpt_load_dir
 	initialize_model(sess, qa_model, FLAGS.ckpt_load_dir, expect_exists=True)
+	
+
 	# app.run(host='0.0.0.0', port=443, ssl_context=('/home/gem/.ssh/certificate.pem', '/home/gem/.ssh/private-key.pem'))
-	app.run(host='0.0.0.0', port=443, ssl_context=('/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/fullchain.pem', '/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/privkey.pem'))
+	app.run(debug=True, host='0.0.0.0', port=443, ssl_context=('/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/fullchain.pem', '/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/privkey.pem'))
 
 
 # fpath = '/home/sagarp/gem/cs224n-Squad-Project/data/tiny-dev-test.json'
 # initialize our Flask application and the Keras model
-app = flask.Flask(__name__)
+app = flask.Flask(__name__, template_folder='../static', static_folder='../static')
 CORS(app)
 ask = Ask(app, "/")
 
@@ -346,6 +350,11 @@ def upload_file():
 	<h1>Hello from The Dude</h1>
 	</form>
 	'''
+
+
+@app.route("/")
+def hello():  
+    return render_template('index.html', )
 
 
 @ask.launch

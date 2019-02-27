@@ -55,11 +55,11 @@ $('document').ready(function(){
 
 		// Toggle which input type is shown
 		if($('.buttonResponse').is(":visible")) {
-			$("#switchInputType").attr("src", "Images/multipleChoice.png");
+			$("#switchInputType").attr("src", "/static/Images/multipleChoice.png");
 		}
 
 		else {
-			$("#switchInputType").attr("src", "Images/keyboard.png");
+			$("#switchInputType").attr("src", "/static/Images/keyboard.png");
 		}
 		$('textarea').toggle();
 		$('.buttonResponse').toggle();
@@ -418,7 +418,7 @@ function createNewMessage(message) {
 	// Append a new div to the chatlogs body, with an image and the text from API.AI
 	$chatlogs.append(
 		$('<div/>', {'class': 'chat friend'}).append(
-			$('<div/>', {'class': 'user-photo'}).append($('<img src="Images/ana.JPG" />')), 
+			$('<div/>', {'class': 'user-photo'}).append($('<img src="/static/Images/ana.JPG" />')), 
 			$('<p/>', {'class': 'chat-message', 'text': message})));
 
 	// Find the last message in the chatlogs
@@ -576,9 +576,9 @@ function updateRec() {
 	
 
 	if (recognition) {
-		$("#rec").attr("src", "Images/MicrophoneOff.png");
+		$("#rec").attr("src", "/static/Images/MicrophoneOff.png");
 	} else {
-		$("#rec").attr("src", "Images/microphone.png");
+		$("#rec").attr("src", "/static/Images/microphone.png");
 
 	}
 }

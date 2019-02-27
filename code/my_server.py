@@ -269,7 +269,7 @@ def main(unused_argv):
 	
 
 	# app.run(host='0.0.0.0', port=443, ssl_context=('/home/gem/.ssh/certificate.pem', '/home/gem/.ssh/private-key.pem'))
-	app.run(debug=True, host='0.0.0.0', port=443, ssl_context=('/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/fullchain.pem', '/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/privkey.pem'))
+	app.run(host='0.0.0.0', port=443, ssl_context=('/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/fullchain.pem', '/etc/letsencrypt/live/gem.eastus2.cloudapp.azure.com/privkey.pem'))
 
 
 # fpath = '/home/sagarp/gem/cs224n-Squad-Project/data/tiny-dev-test.json'

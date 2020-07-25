@@ -29,4 +29,4 @@ cd experiments # Go to experiments directory
 tensorboard --logdir=. --port=5678 # Start TensorBoard
 ```
 
-## Pretrained model credits - Priyanka Dwivedi - https://github.com/priya-dwivedi/cs224n-Squad-Project
+**Pretrained model credits - Priyanka Dwivedi - https://github.com/priya-dwivedi/cs224n-Squad-Project**

@@ -28,3 +28,5 @@ python code/main.py --experiment_name=rnet_best --dropout=0.20 --batch_size=20 -
 cd experiments # Go to experiments directory
 tensorboard --logdir=. --port=5678 # Start TensorBoard
 ```
+
+## Pretrained model credits - Priyanka Dwivedi - https://github.com/priya-dwivedi/cs224n-Squad-Project
